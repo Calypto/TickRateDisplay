@@ -1,3 +1,5 @@
+![EnterServer](https://github.com/Calypto/TickRateDisplay/blob/main/ServerDetails.png?raw=true)
+
 ## TickRateDisplay
 UT2004 mutator that shows the server's tick rate (Hz) and tick period (ms) in the server details, and also lets clients type `mutate tickrate` in the console to receive real time data on the server's tick rate, useful for profiling server performance.
 
