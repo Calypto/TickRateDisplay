@@ -10,7 +10,7 @@ The last admin command is `admin tickratedetails [ 0/off/false/hide | 1/on/true/
 ### Installation
 Add `TickRateDisplay.MutTRD` to the server's command line and mutators. Do not add it to ServerPackages, it is server-side only. The mutator is configurable via webadmin, but only the `set` command will update the settings in real time.
 
-Unfortunately DeltaTime appears to be skewed and does not return the correct tick rate. Instead, we use DeltaTimeOffset to adjust DeltaTime to match our expectation. Use 1.155 for Win7 and earlier, 1.1 for Modern Windows and Linux. On my Win10 install an offset of 1.1 gave correct values, but your mileage may vary. Spam `admin getcurrenttickrate` to determine what the server is actually running at, then type `mutate tickrate` to get the skewed tick rate and solve for X (DeltaTimeOffset).
+Unfortunately DeltaTime appears to be skewed and does not return the correct tick rate. Instead, we use DeltaTimeOffset to adjust DeltaTime to match our expectation. An offset of 1.1 appears to work in most instances, however you will have to verify this yourself. Spam `admin getcurrenttickrate` to determine what the server is actually running at, then type `mutate tickrate` to get the skewed tick rate and solve for X (DeltaTimeOffset).
 
 Formula: IncorrectTickRate * X = ExpectedTickRate  
 X = DeltaTimeOffset
