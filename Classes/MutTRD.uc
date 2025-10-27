@@ -1,4 +1,5 @@
 // By Anonymous/Calypto, 2025
+// https://github.com/Calypto/TickRateDisplay/
 
 class MutTRD extends Mutator
 	config;
@@ -99,10 +100,9 @@ function UpdateDisplayValues()
 }
 
 /*
-Unfortunately DeltaTime appears to be skewed and does not return the correct tick rate. Instead, we use DeltaTimeOffset
-to adjust DeltaTime to match our expectation. Use 1.155 for Win7 and earlier, 1.1 for Modern Windows and Linux.
-On my Win10 install an offset of 1.1 gave correct values, but your mileage may vary. Spam 'admin getcurrenttickrate' to
-determine what the server is actually running at, then type 'mutate tickrate' and solve for X (DeltaTimeOffset).
+DeltaTime is skewed and does not return the correct tick rate. DeltaTimeOffset of 1.1 should return the correct
+tick rate. Spam 'admin getcurrenttickrate' to determine what the server is actually running at,
+then type 'mutate tickrate' and solve for X (DeltaTimeOffset).
 
 Formula: IncorrectTickRate * X = ExpectedTickRate
 X = DeltaTimeOffset
@@ -168,7 +168,6 @@ function Mutate(string MutateString, PlayerController Sender)
 	local TickRateClient NewClient;
 	local string Command, Value;
 	local int SplitPos;
-	local string Status;
 	
 	// Split the command if it contains a space
 	SplitPos = InStr(MutateString, " ");
@@ -203,76 +202,6 @@ function Mutate(string MutateString, PlayerController Sender)
 			
 			// Send first update immediately
 			Sender.ClientMessage("Server tick rate: " $ FormatTickRate(CurrentTickRate) $ " / " $ FormatMilliseconds(CurrentMilliseconds));
-		}
-	}
-	// Check for tickrate logging command
-	else if (Command ~= "tickratelog" && Sender.PlayerReplicationInfo.bAdmin)
-	{
-		if (Value ~= "on" || Value ~= "true" || Value ~= "1")
-		{
-			bEnableLogging = true;
-			SaveConfig();
-			Sender.ClientMessage("Tick rate logging enabled");
-			if (bEnableLogging) 
-			{
-				Log("TickRateDisplay logging enabled by " $ Sender.PlayerReplicationInfo.PlayerName);
-			}
-		}
-		else if (Value ~= "off" || Value ~= "false" || Value ~= "0")
-		{
-			if (bEnableLogging)
-			{
-				Log("TickRateDisplay logging disabled by " $ Sender.PlayerReplicationInfo.PlayerName);
-			}
-			bEnableLogging = false;
-			SaveConfig();
-			Sender.ClientMessage("Tick rate logging disabled");
-		}
-		else
-		{
-			if (bEnableLogging)
-			{
-				Status = "enabled";
-			}
-			else
-			{
-				Status = "disabled";
-			}
-
-			Sender.ClientMessage("Tick rate logging is currently " $ Status);
-			Sender.ClientMessage("Usage: mutate tickratelog [on|off]");
-		}
-	}
-	// Check for server details visibility toggle command
-	else if (Command ~= "tickratedetails" && Sender.PlayerReplicationInfo.bAdmin)
-	{
-		if (Value ~= "on" || Value ~= "true" || Value ~= "1" || Value ~= "show")
-		{
-			bShowInServerDetails = true;
-			SaveConfig();
-			Sender.ClientMessage("Server tick rate details visibility enabled");
-			Log("TickRateDisplay server details visibility enabled by " $ Sender.PlayerReplicationInfo.PlayerName);
-		}
-		else if (Value ~= "off" || Value ~= "false" || Value ~= "0" || Value ~= "hide")
-		{
-			bShowInServerDetails = false;
-			SaveConfig();
-			Sender.ClientMessage("Server tick rate details visibility disabled");
-			Log("TickRateDisplay server details visibility disabled by " $ Sender.PlayerReplicationInfo.PlayerName);
-		}
-		else
-		{
-			if (bShowInServerDetails)
-			{
-				Status = "visible";
-			}
-			else
-			{
-				Status = "hidden";
-			}
-
-			Sender.ClientMessage("Server tick rate details are currently " $ Status);
-			Sender.ClientMessage("Usage: mutate tickratedetails [show|hide]");
 		}
 	}
 	
@@ -315,9 +244,9 @@ static function FillPlayInfo(PlayInfo PlayInfo)
 {
 	Super.FillPlayInfo(PlayInfo);
 
-	PlayInfo.AddSetting("Tick Rate Display", "bEnableLogging", "Enable Logging", 0, 1, "Check", , , True);
-	PlayInfo.AddSetting("Tick Rate Display", "bShowInServerDetails", "Show In Server Details", 0, 1, "Check", , , True);
-	PlayInfo.AddSetting("Tick Rate Display", "DeltaTimeOffset", "DeltaTime offset", 0, 1, "Text", "8;0:10");
+	PlayInfo.AddSetting("Tick Rate Display", "bEnableLogging", "Enable logging", 0, 1, "Check", , , True);
+	PlayInfo.AddSetting("Tick Rate Display", "bShowInServerDetails", "Show tick rate in server details", 0, 1, "Check", , , True);
+	//PlayInfo.AddSetting("Tick Rate Display", "DeltaTimeOffset", "DeltaTime offset", 0, 1, "Text", "8;0:10");
 }
 
 static event string GetDescriptionText(string PropName)
@@ -325,11 +254,11 @@ static event string GetDescriptionText(string PropName)
 	switch (PropName)
 	{
 		case "bEnableLogging":
-			return "If enabled, tick rate will be logged to the server log. Strongly unrecommended outside short-term testing.";
+			return "If enabled, each tick will be logged to the server log. Do not use this outside short-term testing.";
 		case "bShowInServerDetails":
 			return "If enabled, tick rate will be visible in server browser details.";
-		case "DeltaTimeOffset":
-			return "Adjustment value to correct DeltaTime's offset on various OSes. Uses 1.0 by default (no adjustment). Use 1.155 for Win7 or earlier, 1.1 for Linux and modern Windows.";
+		//case "DeltaTimeOffset":
+			//return "Adjustment value to correct DeltaTime's offset. Uses 1.1 by default, which should be correct in most cases.";
 		default:
 			return Super.GetDescriptionText(PropName);
 	}
@@ -339,11 +268,11 @@ defaultproperties
 {
 	GroupName=""
 	FriendlyName="Tick Rate Display"
-	Description="Displays the server's tick rate in hertz and tick period in milliseconds."
+	Description="Displays the server's tick rate in hertz and tick period in milliseconds, and allows profiling via 'mutate tickrate'.||https://github.com/Calypto/TickRateDisplay/"
 	
 	bEnableLogging=False
 	bShowInServerDetails=True
-	DeltaTimeOffset=1.0
+	DeltaTimeOffset=1.1
 	
 	bAlwaysRelevant=True
 	RemoteRole=ROLE_SimulatedProxy
