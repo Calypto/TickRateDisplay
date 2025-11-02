@@ -1,4 +1,5 @@
 // By Anonymous/Calypto, 2025
+// Cr. Snarf for Level.TimeDilation suggestion
 // https://github.com/Calypto/TickRateDisplay/
 
 class MutTRD extends Mutator
@@ -18,7 +19,6 @@ var float CurrentMilliseconds;
 
 var config bool bEnableLogging;
 var config bool bShowInServerDetails;
-var config float DeltaTimeOffset;
 
 // Variable to track when to update server details
 var float NextServerDetailsUpdate;
@@ -99,22 +99,14 @@ function UpdateDisplayValues()
 	}
 }
 
-/*
-DeltaTime is skewed and does not return the correct tick rate. DeltaTimeOffset of 1.1 should return the correct
-tick rate. Spam 'admin getcurrenttickrate' to determine what the server is actually running at,
-then type 'mutate tickrate' and solve for X (DeltaTimeOffset).
-
-Formula: IncorrectTickRate * X = ExpectedTickRate
-X = DeltaTimeOffset
-*/
 function Tick(float DeltaTime)
 {
 	Super.Tick(DeltaTime);
 
 	if (DeltaTime > 0)
 	{
-		InstantaneousTickRate = 1.0 / DeltaTime * DeltaTimeOffset;
-		InstantaneousMilliseconds = DeltaTime * 1000.0 / DeltaTimeOffset;
+		InstantaneousTickRate = 1.0 / DeltaTime * Level.TimeDilation;
+		InstantaneousMilliseconds = DeltaTime * 1000.0 / Level.TimeDilation;
 	}
 
 	//LastTickTime = Level.TimeSeconds;
@@ -246,7 +238,6 @@ static function FillPlayInfo(PlayInfo PlayInfo)
 
 	PlayInfo.AddSetting("Tick Rate Display", "bEnableLogging", "Enable logging", 0, 1, "Check", , , True);
 	PlayInfo.AddSetting("Tick Rate Display", "bShowInServerDetails", "Show tick rate in server details", 0, 1, "Check", , , True);
-	//PlayInfo.AddSetting("Tick Rate Display", "DeltaTimeOffset", "DeltaTime offset", 0, 1, "Text", "8;0:10");
 }
 
 static event string GetDescriptionText(string PropName)
@@ -257,8 +248,6 @@ static event string GetDescriptionText(string PropName)
 			return "If enabled, each tick will be logged to the server log. Do not use this outside short-term testing.";
 		case "bShowInServerDetails":
 			return "If enabled, tick rate will be visible in server browser details.";
-		//case "DeltaTimeOffset":
-			//return "Adjustment value to correct DeltaTime's offset. Uses 1.1 by default, which should be correct in most cases.";
 		default:
 			return Super.GetDescriptionText(PropName);
 	}
@@ -272,7 +261,6 @@ defaultproperties
 	
 	bEnableLogging=False
 	bShowInServerDetails=True
-	DeltaTimeOffset=1.1
 	
 	bAlwaysRelevant=True
 	RemoteRole=ROLE_SimulatedProxy
